@@ -21,14 +21,14 @@ typedef enum cminus_token_type {
 	NEQ = 268,
 	ASSIN = 269,
 	//符号
-	SEMICOLON = 270,
-	COMMA = 271,
-	LPARENTHESE = 272,
-	RPARENTHESE = 273,
+	SEMICOLON = 270,//分号
+	COMMA = 271,//逗号
+	LPARENTHESE = 272,//左小括号
+	RPARENTHESE = 273,//右小括号
 	LBRACKET = 274,
-	RBRACKET = 275,
+	RBRACKET = 275,//中括号
 	LBRACE = 276,
-	RBRACE = 277,
+	RBRACE = 277,//大括号
 	//关键字
 	ELSE = 278,
 	IF = 279,
@@ -55,7 +55,7 @@ typedef enum cminus_token_type {
 typedef struct{
     char text[256];
     int token;
-    int lines; 
+    int lines;
 	int pos_start;
 	int pos_end;
 } Token_Node;

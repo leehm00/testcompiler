@@ -10,15 +10,50 @@
 /*****************声明和选项设置  end*****************/
 
 %}
- 
 
 %%
 
  /******************TODO*********************/
  /****请在此补全所有flex的模式与动作  start******/
  //STUDENT TO DO
+"/*"([^\*]|(\*)*[^\*/])*(\*)*"*/" {return COMMENT;}
+ \+ {return ADD;}
+ \- {return SUB;}
+ \* {return MUL;}
+ \/ {return DIV;}
+ \<= {return LTE;}
+ \< {return LT;}
+ \>= {return GTE;}
+ \> {return GT;}
+ == {return EQ;}
+ != {return NEQ;}
+ = {return ASSIN;}
+ ; {return SEMICOLON;}
+ , {return COMMA;}
+ \( {return LPARENTHESE;}
+ \) {return RPARENTHESE;}
+ \[ {return LBRACKET;}
+ \] {return RBRACKET;}
+ \{ {return LBRACE;}
+ \} {return RBRACE;}
+ else {return ELSE;}
+ if {return IF;}
+ int {return INT;}
+ float {return FLOAT;}
+ return {return RETURN;}
+ void {return VOID;}
+ while {return WHILE;}
+{Letter}+ {return IDENTIFIER;}
+{digit}+ {return INTEGER;}
+({digit}+\.)|({digit}*\.{digit}+) {return FLOATPOINT;}
+ \[\] {return ARRAY;}
+ \n {return EOL;}
+ [\x20\t\r\v\f] {return BLANK;}
 
-. {return ERROR;} 
+
+
+
+. {return ERROR;}
 
 
 
@@ -41,16 +76,31 @@ void analyzer(char* input_file, Token_Node* token_stream){
 
 	int token;
 	int index = 0;
+	lines = 1;
+	pos_start = 1;
+	pos_end = 1;
 
 	while(token = yylex()){
 		switch(token){
-			case COMMENT: 
+			case COMMENT:
 				//STUDENT TO DO
+				for (int i = 0;i < strlen(yytext);i++)
+					if(yytext[i] == '\n') {
+						lines++;
+						pos_start = pos_end = 0;//1 or 0
+					}else{
+						pos_end++;
+				}
 			case BLANK:
-				//STUDENT TO DO	
+				//STUDENT TO DO
+				pos_start++;
+                pos_end++;
 				break;
 			case EOL:
 				//STUDENT TO DO
+				lines++;
+                pos_start = 1;
+                pos_end = 1;
 				break;
 			case ERROR:
 				printf("[ERR]: unable to analysize %s at %d line, from %d to %d\n", yytext, lines, pos_start, pos_end);
