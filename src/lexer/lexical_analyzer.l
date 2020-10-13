@@ -13,8 +13,8 @@ int pos_end;
 /*****************声明和选项设置  end*****************/
 
 %}
-Letter [a-zA-Z] 
-id {Letter}+
+letter [a-zA-Z] 
+id {letter}({letter}|{digit})
 digit [0-9]
 integer {digit}+
 
@@ -53,7 +53,7 @@ integer {digit}+
  return {return RETURN;}
  void {return VOID;}
  while {return WHILE;}
-{Letter}+ {return IDENTIFIER;}
+{letter}+ {return IDENTIFIER;}
 {digit}+ {return INTEGER;}
 ({digit}+\.)|({digit}*\.{digit}+) {return FLOATPOINT;}
  \[\] {return ARRAY;}
