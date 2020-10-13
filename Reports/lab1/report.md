@@ -43,9 +43,8 @@ a       284     1       6       7
 3. 有个坑是default的时候要注意pos_start和pos_end的赋值pos_end的值要修改一下.
 
 ## 实验结果验证
-请提供部分自己的测试样例
+- 助教的样例
 
-助教的样例
 
 ![](figs/results1.png)
 
@@ -53,7 +52,15 @@ a       284     1       6       7
 
 可以看出diff没有输出,符合期望
 
+- 我自己的样例
 
+  ![](figs/testcase7minus.png)
+
+![](figs/testcase7.png)
+
+![](figs/testcase8minus.png)
+
+![](figs/testcase8.png)
 
 ## 实验反馈
 
