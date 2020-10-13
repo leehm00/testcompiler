@@ -14,7 +14,7 @@ int pos_end;
 
 %}
 letter [a-zA-Z] 
-id {letter}({letter}|{digit})
+id {letter}({letter}|{digit})*
 digit [0-9]
 integer {digit}+
 
@@ -53,7 +53,7 @@ integer {digit}+
  return {return RETURN;}
  void {return VOID;}
  while {return WHILE;}
-{letter}({letter}|{digit}) {return IDENTIFIER;}
+{letter}({letter}|{digit})* {return IDENTIFIER;}
 {digit}+ {return INTEGER;}
 ({digit}+\.)|({digit}*\.{digit}+) {return FLOATPOINT;}
  \[\] {return ARRAY;}
