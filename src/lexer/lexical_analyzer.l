@@ -53,7 +53,7 @@ integer {digit}+
  return {return RETURN;}
  void {return VOID;}
  while {return WHILE;}
-{letter}+ {return IDENTIFIER;}
+{letter}({letter}|{digit}) {return IDENTIFIER;}
 {digit}+ {return INTEGER;}
 ({digit}+\.)|({digit}*\.{digit}+) {return FLOATPOINT;}
  \[\] {return ARRAY;}
