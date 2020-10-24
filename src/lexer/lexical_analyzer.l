@@ -26,7 +26,6 @@ integer {digit}+
  /******************TODO*********************/
  /****请在此补全所有flex的模式与动作  start******/
  //STUDENT TO DO
-<<<<<<< HEAD
 "/*"([^\*]|(\*)*[^\*/])*(\*)*"*/" {return COMMENT;}
  \+ {return ADD;}
  \- {return SUB;}
@@ -60,8 +59,7 @@ integer {digit}+
  \[\] {return ARRAY;}
  \n {return EOL;}
  [\x20\t\r\v\f] {return BLANK;}
-=======
->>>>>>> upstream/master
+
 
 . {return ERROR;}
 
@@ -94,7 +92,7 @@ void analyzer(char* input_file, Token_Node* token_stream){
         switch(token){
             case COMMENT:
                 //STUDENT TO DO
-<<<<<<< HEAD
+
                 for (int i = 0;i < strlen(yytext);i++)
             	if(yytext[i] == '\n') {
                 lines++;
@@ -112,22 +110,12 @@ void analyzer(char* input_file, Token_Node* token_stream){
                 lines++;
                 pos_start = 1;
                 pos_end = 1;
-=======
-            case BLANK:
-                //STUDENT TO DO
-                break;
-            case EOL:
-                //STUDENT TO DO
->>>>>>> upstream/master
                 break;
             case ERROR:
                 printf("[ERR]: unable to analysize %s at %d line, from %d to %d\n", yytext, lines, pos_start, pos_end);
             default :
-<<<<<<< HEAD
             	pos_start = pos_end;
             	pos_end += strlen(yytext);
-=======
->>>>>>> upstream/master
                 if (token == ERROR){
                     sprintf(token_stream[index].text, "[ERR]: unable to analysize %s at %d line, from %d to %d", yytext, lines, pos_start, pos_end);
                 } else {
