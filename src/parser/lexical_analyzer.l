@@ -23,4 +23,43 @@ void pass_node(char *text){
 ***************/
 
 /* Example for you :-) */
-\+  { pos_start = pos_end; pos_end += 1; pass_node(yytext); return ADD; }
+\+ {pos_start = pos_end; pos_end ++; pass_node(yytext); return ADD;}
+\- {pos_start = pos_end; pos_end ++; pass_node(yytext); return SUB;}
+\* {pos_start = pos_end; pos_end ++; pass_node(yytext); return MUL;}
+\/ {pos_start = pos_end; pos_end ++; pass_node(yytext); return DIV;}
+\< {pos_start = pos_end; pos_end ++; pass_node(yytext); return LT;}
+\<= {pos_start = pos_end; pos_end += 2; pass_node(yytext); return LTE;}
+\> {pos_start = pos_end; pos_end ++; pass_node(yytext); return GT;}
+\>= {pos_start = pos_end; pos_end += 2; pass_node(yytext); return GTE;}
+== {pos_start = pos_end; pos_end += 2; pass_node(yytext); return EQ;}
+!= {pos_start = pos_end; pos_end += 2; pass_node(yytext); return NEQ;}
+= {pos_start = pos_end; pos_end ++; pass_node(yytext); return ASSIN;}
+
+; {pos_start = pos_end; pos_end ++; pass_node(yytext); return SEMICOLON;}
+, {pos_start = pos_end; pos_end ++; pass_node(yytext); return COMMA;}
+\( {pos_start = pos_end; pos_end ++; pass_node(yytext); return LPARENTHESE;}
+\) {pos_start = pos_end; pos_end ++; pass_node(yytext); return RPARENTHESE;}
+\[ {pos_start = pos_end; pos_end ++; pass_node(yytext); return LBRACKET;}
+\] {pos_start = pos_end; pos_end ++; pass_node(yytext); return RBRACKET;}
+\{ {pos_start = pos_end; pos_end ++; pass_node(yytext); return LBRACE;}
+\} {pos_start = pos_end; pos_end ++; pass_node(yytext); return RBRACE;}
+
+else {pos_start = pos_end; pos_end += 4; pass_node(yytext); return ELSE;}
+if {pos_start = pos_end; pos_end += 2; pass_node(yytext); return IF;}
+int {pos_start = pos_end; pos_end += 3; pass_node(yytext); return INT;}
+float {pos_start = pos_end; pos_end += 5; pass_node(yytext); return FLOAT;}
+return {pos_start = pos_end; pos_end += 6; pass_node(yytext); return RETURN;}
+void {pos_start = pos_end; pos_end += 4; pass_node(yytext); return VOID;}
+while {pos_start = pos_end; pos_end += 5; pass_node(yytext); return WHILE;}
+
+[ \t] {pos_start = pos_end; pos_end ++; }
+{FLO} {pos_start = pos_end; pos_end += strlen(yytext); pass_node(yytext); return FLOATPOINT;}
+{ID} {pos_start = pos_end; pos_end += strlen(yytext); pass_node(yytext); return IDENTIFIER;}
+{DIGIT}+ {pos_start = pos_end; pos_end += strlen(yytext); pass_node(yytext); return INTEGER;}
+\[\] {pos_start = pos_end; pos_end += 2; pass_node(yytext); return ARRAY;}
+{LETTERS} {pos_start = pos_end; pos_end ++; pass_node(yytext); return LETTER;}
+
+\n {lines ++; pos_start = 1; pos_end = 1; }
+{commentPattern} {for (int i = 0;i < strlen(yytext);i++){if(yytext[i] == '\n') { lines++; pos_start = pos_end = 1;} else{pos_end++;};}}
+. {pass_node(yytext); return ERROR;}
+%%
