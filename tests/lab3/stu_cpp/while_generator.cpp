@@ -47,8 +47,8 @@ int main() {
     //条件成立进入循环体内部执行
     auto br = builder->create_cond_br(icmp, true_i, retA);
     builder->set_insert_point(true_i);
-    auto iLoad = builder->create_load(iAlloca);//取i值
-    auto iAddone = builder->create_iadd(iLoad, CONST_INT(1));//i+1
+    auto iLoadinWhile = builder->create_load(iAlloca);//取i值
+    auto iAddone = builder->create_iadd(iLoadinWhile, CONST_INT(1));//i+1
     builder->create_store(iAddone, iAlloca);//存i+1值
     auto iLoadAdda = builder->create_load(iAlloca);//取i值
     auto aLoad = builder->create_load(aAlloca);//取a值
