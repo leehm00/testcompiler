@@ -14,6 +14,7 @@
 #include <queue>
 #include <fstream>
 #include <algorithm>
+#include "Constant.h"
 
 class ActiveVars : public Pass
 {

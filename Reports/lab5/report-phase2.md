@@ -394,21 +394,27 @@
     - 第一部分定义了两个集合，存储指令的顺序，避免外提时出错，最后得到翻转的指令列表，用来倒序遍历删除指令。
 
     ```c++
-    std::cout << "curBB" << loop_bb->get_name() << '\n';
+    bool is_invariant = true;
+        m_->set_print_name();
+        for (auto loopbb = loop_searcher.begin(); loopbb != loop_searcher.end(); loopbb++) {
+            auto lbsp = **loopbb;
+            for(auto loop_bb : lbsp)
+            {
                 std::list<Value *> rightoplist;
                 std::list<Value *> leftoplist;
                 std::list<Value *> instrlist;
-                std::list<Value *> todeletelist;
-                std::list<Value *> no_deletion;
+                std::list<Value *> toeraselist;
+                std::list<Value *> donotdelete;
+    
                 for (auto instr : loop_bb->get_instructions()) {
                     Instruction::OpID type = instr->get_instr_type();
-                    if (type == 0 || type == 1 ) {
+                    if (type == Instruction::ret || type == Instruction::br ) {
                         for (auto op : instr->get_operands()) {
-                            no_deletion.push_back(op);
+                            donotdelete.push_back(op);
                         }
                         continue;
                     }
-                    else if (type == 10 || type == 15 || type == 16 || type == 17) {
+                    else if (type == Instruction::alloca || type == Instruction::phi || type == Instruction::call || type == Instruction::getelementptr) {
                         continue;
                     }
                     leftoplist.push_back(instr);
@@ -602,6 +608,195 @@
       ```
 
 * 活跃变量分析
+    实现思路：直接正常处理除了`phi`指令之外的所有指令，单独对`phi`指令的左值进行活跃性分析。单独处理后继块中含`phi`指令的块，将右值加入`OUT`集合与后继的`IN`集合中。
+    相应的代码：遇到`phi`指令只将左值根据使用情况加入`def`集合中，而不去处理右值。其他指令中，只要作为左值出现就加入`alldef`集合，只要作为右值出现就加入`alluse`集合。然后在遇到指令时对左值在`alluse`集合中查找，如果不在的话就加入`def`中，对右值在`alldef`集合中查找，如果不在的话就加入`use`中。
+    
+    ```c++
+    #include "ActiveVars.hpp"
+    
+    // 用来判断value是否为ConstantFP，如果不是则会返回nullptr
+    ConstantFP *cast_constantf(Value *value)
+    {
+        auto constant_fp_ptr = dynamic_cast<ConstantFP *>(value);
+        if (constant_fp_ptr)
+        {
+            return constant_fp_ptr;
+        }
+        else
+        {
+            return nullptr;
+        }
+    }
+    ConstantInt *cast_constanti(Value *value)
+    {
+        auto constant_int_ptr = dynamic_cast<ConstantInt *>(value);
+        if (constant_int_ptr)
+        {
+            return constant_int_ptr;
+        }
+        else
+        {
+            return nullptr;
+        }
+    }
+    bool is_var(Value* oper){
+        return !(cast_constantf(oper)||cast_constanti(oper));
+    }
+    void ActiveVars::run()
+    {
+        std::ofstream output_active_vars;
+        output_active_vars.open("active_vars.json", std::ios::out);
+        output_active_vars << "[";
+        for (auto &func : this->m_->get_functions()) {
+            if (func->get_basic_blocks().empty()) {
+                continue;
+            }
+            else
+            {
+                func_ = func;  
+    
+                func_->set_instr_name();
+                live_in.clear();
+                live_out.clear();
+                
+                // 在此分析 func_ 的每个bb块的活跃变量，并存储在 live_in live_out 结构内
+                std::map<BasicBlock *, std::set<Value *>>lazyin;
+                for (auto bb : func_->get_basic_blocks())
+                {
+                    for (auto instr : bb->get_instructions()){
+                    if (instr->is_phi())
+                        {
+                            if (alluse.find(instr) == alluse.end())
+                                def[bb].insert(instr);
+                            alldef.insert(instr);
+                            for (auto oper : instr->get_operands())
+                            {
+                                if (is_var(oper))
+                                {
+                                    alluse.insert(oper);
+                                }
+                            }
+                        }
+    					else
+                        {
+                            if (alluse.find(instr) == alluse.end())
+                                def[bb].insert(instr);
+                            for (auto oper : instr->get_operands())
+                            {
+                                if (alldef.find(oper) == alldef.end() && is_var(oper))
+                                    use[bb].insert(oper);
+                            }
+                            alldef.insert(instr);
+                            for (auto oper : instr->get_operands())
+                            {
+                                if (is_var(oper))
+                                {
+                                    alluse.insert(oper);
+                                }
+                            }
+                        }
+                    
+    					for (auto succ : bb->get_succ_basic_blocks())
+                        {
+                            alldef.clear();
+                            for (auto instr : succ->get_instructions())
+                            {
+                                if (instr->is_phi())
+                                {
+                                    auto vec = instr->get_operands();
+                                    for (auto i = 0; i < vec.size(); i += 2)
+                                    {
+                                        if (dynamic_cast<BasicBlock *>(vec[i + 1]) == bb && dynamic_cast<ConstantInt *>(vec[i]) == nullptr && dynamic_cast<ConstantFP *>(vec[i]) == nullptr)
+                                        {
+                                            if (alldef.find(vec[i]) == alldef.end())
+                                            {
+                                                live_out[bb].insert(vec[i]);
+                                                lazyin[succ].insert(vec[i]);
+                                            }
+                                        }
+                                    }
+                                }
+                                alldef.insert(instr);
+                            }
+                        }
+                    }
+                    for (auto bb : func->get_basic_blocks())
+                    {
+                        need_iterate = false;
+                        if (live_in[bb] != tempin[bb])
+                        {
+                            need_iterate = true;
+                            break;
+                        }
+                    }
+                }
+                for (auto bb : func->get_basic_blocks())
+                {
+                    set_union(live_in[bb].begin(), live_in[bb].end(), lazyin[bb].begin(), lazyin[bb].end(), inserter(live_in[bb], live_in[bb].begin()));
+                }
+                output_active_vars << print();
+                output_active_vars << ",";
+            }
+        }
+        output_active_vars << "]";
+        output_active_vars.close();
+        return ;
+    }
+    
+    std::string ActiveVars::print()
+    {
+        std::string active_vars;
+        active_vars +=  "{\n";
+        active_vars +=  "\"function\": \"";
+        active_vars +=  func_->get_name();
+        active_vars +=  "\",\n";
+    
+        active_vars +=  "\"live_in\": {\n";
+        for (auto &p : live_in) {
+            if (p.second.size() == 0) {
+                continue;
+            } else {
+                active_vars +=  "  \"";
+                active_vars +=  p.first->get_name();
+                active_vars +=  "\": [" ;
+                for (auto &v : p.second) {
+                    active_vars +=  "\"%";
+                    active_vars +=  v->get_name();
+                    active_vars +=  "\",";
+                }
+                active_vars += "]" ;
+                active_vars += ",\n";   
+            }
+        }
+        active_vars += "\n";
+        active_vars +=  "    },\n";
+        
+        active_vars +=  "\"live_out\": {\n";
+        for (auto &p : live_out) {
+            if (p.second.size() == 0) {
+                continue;
+            } else {
+                active_vars +=  "  \"";
+                active_vars +=  p.first->get_name();
+                active_vars +=  "\": [" ;
+                for (auto &v : p.second) {
+                    active_vars +=  "\"%";
+                    active_vars +=  v->get_name();
+                    active_vars +=  "\",";
+                }
+                active_vars += "]";
+                active_vars += ",\n";
+            }
+        }
+        active_vars += "\n";
+        active_vars += "    }\n";
+    
+        active_vars += "}\n";
+        active_vars += "\n";
+        return active_vars;
+    }
+    ```
+    
     
 
 ### 实验总结
