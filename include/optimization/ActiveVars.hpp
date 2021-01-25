@@ -27,6 +27,8 @@ private:
     std::map<BasicBlock *, std::set<Value *>> live_in, live_out,def, use,tempin,tempout;
     std::set<Value *>alldef,alluse;
     bool need_iterate;
+    std::map<BasicBlock *, std::set<Value *>> maptouse, maptodefine;
+    std::map<BasicBlock *, std::map<Value *, BasicBlock *>> allphi;
 };
 
 #endif
